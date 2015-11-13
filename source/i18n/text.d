@@ -11,23 +11,23 @@
   * function is entered.
   *
   * Catalogs:
-  * There are two kinds of catalogs: the singular $(I primary catalog), and
-  * $(I translation catalogs), one for each translation. Each catalog is an
-  * XML document made visible to the framework as string imports.
+  * There are two kinds of catalogs: the singular $(I primary catalog) and one
+  * $(I translation catalog) for each translation. Each catalog is an XML
+	* document made visible to the framework as a string import.
   *
   * Primary Catalog:
   * The primary catalog is loaded from the string import $(D i18n/strings.xml)
-  * and specifies the primary table of string resources, which is used in the
-  * following situations:
-  *
-  * - when the language of the primary table matches that of the user's
-  * preferred language
-  * - when a translation catalog for the user's preferred language is not
-  * supplied
-  * - when a translation catalog for the user's preferred language is supplied,
+  * and specifies the primary table of string resources, which is used when:
+  * $(UL
+  * $(LI The language of the primary table matches that of the user's
+  * preferred language)
+  * $(LI A translation catalog for the user's preferred language is not
+  * supplied)
+  * $(LI A translation catalog for the user's preferred language is supplied,
   * but does not contain a translation for the particular string being looked
-  * up
-  * - when internationalization is disabled
+  * up)
+  * $(LI Internationalization is disabled)
+	* )
   *
   * The primary catalog must have the following structure:
   * $(CODE
@@ -43,7 +43,7 @@
 </resources>
 )
   * For the primary catalog, the root element's $(D language) attribute is
-  * required and contains the language used.
+  * required and contains the language used in the primary catalog.
   *
   * Each $(D translation) element declares that a translation catalog for the
   * given language is supplied and should be loaded.
@@ -57,7 +57,7 @@
   * Translation Catalogs:
   * Translation catalogs are loaded as string imports from
   * $(D i18n/strings.$(I ll).xml) where $(I ll) is the ISO-639 language code
-  * for the language translations provided within the document. Each translation
+  * for the language translation provided within the document. Each translation
   * must be enumerated in the primary catalog with the $(D translation) tag.
   *
   * The structure of translation catalogs is a subset of the structre of the
@@ -79,25 +79,24 @@
 ------
 void main()
 {
-	import std.stdio;
-	import i18n.text;
+    import std.stdio;
+    import i18n.text;
 
-	writeln(strings.hello_world);
+		// Writes the string resource with the identifier "hello_world" to stdout
+    writeln(strings.hello_world);
 }
 ------
   * Language Selection:
   * This library uses platform-specific standards for selecting the preferred
   * language. On POSIX systems, this is the POSIX standard of using environment
   * variables, including the fallback/priority syntax supported by $(I gettext).
-  * See $(LINK2 gettext's documentation, TODO) for details.
+  * See $(HTTPS www.gnu.org/software/gettext/manual/html_node/Setting-the-POSIX-Locale.html#Setting-the-POSIX-Locale,
+  * gettext's documentation on setting the POSIX locale).
+  *
+  * See_Also:
+  * $(I gettext)'s advice on $(HTTPS www.gnu.org/software/gettext/manual/gettext.html#Preparing-Strings, separating strings)
+  * and $(HTTPS www.gnu.org/software/gettext/manual/gettext.html#Names, translating names)
   */
-
-/*
-Notes:
-	format string validation?
-	https://www.gnu.org/software/gettext/manual/gettext.html#Preparing-Strings
-	https://www.gnu.org/software/gettext/manual/gettext.html#Names
-*/
 module i18n.text;
 
 private:
