@@ -207,7 +207,7 @@ unittest
 	<string name="foo">bar</string>
 	<string name="baz">foobar</string>
 </resources>
-		});
+		}, StringTable.init);
 
 	assert(catalog.table.language == "en");
 
@@ -217,7 +217,7 @@ unittest
 		]);
 
 	alias S = StringTable.StringResource;
-	assert(catalog.table.strings == [S("foo", "bar"), S("baz", "foobar")]);
+	assert(catalog.table.strings == [S("baz", "foobar"), S("foo", "bar")]);
 }
 
 struct Locale
