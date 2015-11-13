@@ -1,0 +1,7 @@
+name "i18n"
+description "Internationalization utilities"
+copyright "Copyright © 2015, Jakob Øvrum"
+authors "Jakob Øvrum"
+
+importPath "source"
+
