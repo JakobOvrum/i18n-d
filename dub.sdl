@@ -2,6 +2,7 @@ name "i18n"
 description "Native Language Support for D applications and libraries"
 copyright "Copyright © 2015, Jakob Øvrum"
 authors "Jakob Øvrum"
+license "BSL-1.0"
 
 importPath "source"
 
