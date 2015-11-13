@@ -3,19 +3,19 @@
   *
   *
   * This library aims to facilitate native language support in applications and
-  * libraries written in D. String resources containing natural language text
+  * libraries written in D. String resources containing natural language _text
   * are read from XML documents, called $(I catalogs), supplied at compile-time.
-  * In source code, string resources are referenced with the $(LREF strings)
+  * In source code, string resources are referenced with the $(MREF strings)
   * interface. The languages to use are configured automatically at the start
   * of the program based on the running user's environment, before the $(D main)
   * function is entered.
   *
-  * Catalogs:
+  * $(SECTION2 Catalogs)
   * There are two kinds of catalogs: the singular $(I primary catalog) and one
   * $(I translation catalog) for each translation. Each catalog is an XML
 	* document made visible to the framework as a string import.
   *
-  * Primary Catalog:
+  * $(SECTION2 Primary Catalog)
   * The primary catalog is loaded from the string import $(D i18n/strings.xml)
   * and specifies the primary table of string resources, which is used when:
   * $(UL
@@ -26,76 +26,69 @@
   * $(LI A translation catalog for the user's preferred language is supplied,
   * but does not contain a translation for the particular string being looked
   * up)
-  * $(LI Internationalization is disabled)
-	* )
-  *
+  * $(LI Internationalization is disabled))
   * The primary catalog must have the following structure:
-  * $(CODE
-<?xml version="1.0" encoding="utf-8"?>
-<resources language="primary_catalog_language">
-	<translation language="translation1"/>
-	<translation language="translation2"/>
-	<translation language="..."/>
-
-	<string name="id1">text1</string>
-	<string name="id2">text2</string>
-	<string name="...">...</string>
-</resources>
-)
+----
+$(LESS)?xml version="1.0" encoding="utf-8"?$(GREATER)
+$(LESS)resources language="primary_catalog_language"$(GREATER)
+	$(LESS)translation language="translation1"/$(GREATER)
+	$(LESS)translation language="translation2"/$(GREATER)
+	$(LESS)translation language="..."/$(GREATER)
+	$(LESS)string name="id1"$(GREATER)text1$(LESS)/string$(GREATER)
+	$(LESS)string name="id2"$(GREATER)text2$(LESS)/string$(GREATER)
+	$(LESS)string name="..."$(GREATER)...$(LESS)/string$(GREATER)
+$(LESS)/resources$(GREATER)
+----
   * For the primary catalog, the root element's $(D language) attribute is
   * required and contains the language used in the primary catalog.
-  *
   * Each $(D translation) element declares that a translation catalog for the
   * given language is supplied and should be loaded.
-  *
   * All $(D language) attributes are ISO-639 language codes.
-  *
   * Each $(D string) element defines a string resource, where the $(D name)
   * attribute is the resource identifier, and the element's content is the
-  * resource text.
+  * resource _text.
   *
-  * Translation Catalogs:
+  * $(SECTION2 Translation Catalogs)
   * Translation catalogs are loaded as string imports from
-  * $(D i18n/strings.$(I ll).xml) where $(I ll) is the ISO-639 language code
+  * $(D i18n/strings.$(I ll).xml) where $(D $(I ll)) is the ISO-639 language code
   * for the language translation provided within the document. Each translation
   * must be enumerated in the primary catalog with the $(D translation) tag.
   *
   * The structure of translation catalogs is a subset of the structre of the
   * primary catalog:
-  * $(CODE
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-	<string name="id1">text1</string>
-	<string name="id2">text2</string>
-	<string name="...">...</string>
-</resources>
+----
+$(LESS)?xml version="1.0" encoding="utf-8"?$(GREATER)
+$(LESS)resources$(GREATER)
+	$(LESS)string name="id1"$(GREATER)text1$(LESS)/string$(GREATER)
+	$(LESS)string name="id2"$(GREATER)text2$(LESS)/string$(GREATER)
+	$(LESS)string name="..."$(GREATER)...$(LESS)/string$(GREATER)
+$(LESS)/resources$(GREATER)
+----
   * Each $(D string) element provides a translation of the string resource
   * with the given identifier. The identifier must match the identifier
   * of a string resource in the primary catalog.
   *
-  * String References:
-  * In source code, string resources are referenced with the $(LREF strings)
-  * interface:
+  * $(SECTION2 String References)
+  * In source code, string resources are referenced with the $(MREF strings) interface:
 ------
-void main()
-{
-    import std.stdio;
-    import i18n.text;
-
-		// Writes the string resource with the identifier "hello_world" to stdout
+void main() {
+    import std.stdio, i18n.text;
+    // Writes the string resource with the identifier "hello_world" to stdout
     writeln(strings.hello_world);
 }
 ------
-  * Language Selection:
-  * This library uses platform-specific standards for selecting the preferred
-  * language. On POSIX systems, this is the POSIX standard of using environment
-  * variables, including the fallback/priority syntax supported by $(I gettext).
-  * See $(HTTPS www.gnu.org/software/gettext/manual/html_node/Setting-the-POSIX-Locale.html#Setting-the-POSIX-Locale,
+  * $(SECTION2 Language Selection)
+  * Platform-specific standards are used for selecting the preferred language.
+  * On POSIX systems, this is the POSIX standard of using environment variables,
+  * including the fallback/priority syntax supported by $(I gettext). See
+  * $(HTTPS www.gnu.org/software/gettext/manual/html_node/Setting-the-POSIX-Locale.html#Setting-the-POSIX-Locale,
   * gettext's documentation on setting the POSIX locale).
   *
   * See_Also:
   * $(I gettext)'s advice on $(HTTPS www.gnu.org/software/gettext/manual/gettext.html#Preparing-Strings, separating strings)
   * and $(HTTPS www.gnu.org/software/gettext/manual/gettext.html#Names, translating names)
+  * Macros:
+  *    SECTION2=<h3>$1</h3>
   */
 module i18n.text;
 
@@ -404,7 +397,7 @@ struct Strings()
 
 	/**
 	  * Returns:
-	  * $(D true) iff id is defined in the primary catalog
+	  *   $(D true) iff id is defined in the primary catalog
 	  * Complexity:
 	  *   $(BIGOH log n)
 	  */
@@ -432,11 +425,10 @@ struct Strings()
 				.array;
 
 			/**
-			  * Get the text for id according to the user's preferred language(s).
-			  *
+			  * Get the text for $(I id) according to the user's
+			  * preferred language(s).
 			  * Complexity:
-			  *   $(BIGOH O(1))
-			  *
+			  *   $(BIGOH 1)
 			  */
 			string opDispatch() @property pure nothrow @safe @nogc
 			{
@@ -454,7 +446,10 @@ struct Strings()
 	}
 }
 
-/// See_Also: $(LREF Strings)
+/**
+ * See_Also:
+ *  $(MREF Strings)
+ */
 Strings!() strings()() @property pure nothrow @safe @nogc
 {
 	return Strings!()();
