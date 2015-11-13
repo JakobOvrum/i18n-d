@@ -329,7 +329,13 @@ struct Strings()
 	import std.algorithm.iteration : map;
 	import std.algorithm.sorting : sort;
 	import std.array : array;
-	import std.meta : aliasSeqOf, staticMap;
+	import std.meta : staticMap;
+
+	static if(__VERSION__ < 2070)
+		import std_backport.meta : aliasSeqOf;
+	else
+		import std.meta : aliasSeqOf;
+
 	import std.path : buildPath;
 	import std.range : chain, only, zip;
 	import std.typecons : Tuple;
