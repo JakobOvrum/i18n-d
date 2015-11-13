@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources language="en">
+    <translation language="cn"/>
+    <translation language="de"/>
+    <translation language="es"/>
+    <translation language="ja"/>
+    <string name="hello_world">hello, world</string>
+</resources>
