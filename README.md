@@ -12,6 +12,9 @@ Automatically generated documentation can be found on the
 [gh-pages branch](https://github.com/JakobOvrum/i18n-d/tree/gh-pages),
 or it can be [browsed online](https://jakobovrum.github.io/i18n-d/i18n.text.html).
 
+See also the [hello-world example](https://github.com/JakobOvrum/i18n-d/tree/master/example/helloworld)
+for a complete example of using *i18n-d* with dub.
+
 License
 ============================================
 *i18n-d* is licensed under the terms of the Boost license (see the [LICENSE file](http://github.com/JakobOvrum/i18n-d/blob/master/LICENSE) for details).
