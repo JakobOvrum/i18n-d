@@ -1,4 +1,4 @@
-i18n-d
+i18n-d [![dub](https://img.shields.io/dub/v/i18n.svg)](http://code.dlang.org/packages/i18n)
 ============================================
 *i18n-d* aims to facilitate native language support for applications written
 in the D programming language. The library currently provides the `i18n.text`
