@@ -86,7 +86,7 @@ void main() {
   *
   * See_Also:
   * $(I gettext)'s advice on $(HTTPS www.gnu.org/software/gettext/manual/gettext.html#Preparing-Strings, separating strings)
-  * and $(HTTPS www.gnu.org/software/gettext/manual/gettext.html#Names, translating names)
+  * and $(HTTPS www.gnu.org/software/gettext/manual/gettext.html#Names, translating proper names)
   * Macros:
   *    SECTION2=<h3>$1</h3>
   */
@@ -406,16 +406,8 @@ struct Strings()
 		return primaryTable.lookup(id) != null;
 	}
 
-	///
-	template opDispatch(string id, string file = __FILE__, uint line = __LINE__)
-		if(identifierExists(id))
+	private template opDispatchImpl(string id)
 	{
-		version(i18n_list_references)
-		{
-			import std.format : format;
-			pragma(msg, format("i18n %s(%s): %s", file, line, id));
-		}
-
 		static immutable fallback = primaryTable.lookup(id);
 
 		static if(sources.length)
@@ -424,15 +416,7 @@ struct Strings()
 				(ref immutable StringTable table) => table.lookup(id))
 				.array;
 
-			/**
-			  * Get the text for $(I id) according to the user's
-			  * preferred language(s).
-			  * Complexity:
-			  *   $(BIGOH 1). The upper bound is proportional to the number of
-			  * translations provided at compile-time. The number of string
-			  * resources does $(I not) affect runtime.
-			  */
-			string opDispatch() @property pure nothrow @safe @nogc
+			static string opDispatchImpl() @property pure nothrow @safe @nogc
 			{
 				foreach(index; translationIndexes)
 				{
@@ -444,7 +428,33 @@ struct Strings()
 			}
 		}
 		else
-			alias opDispatch = fallback;
+			alias opDispatchImpl = fallback;
+	}
+
+	version(i18n_list_references)
+	{
+		template opDispatch(string id, string file = __FILE__, uint line = __LINE__)
+			if(identifierExists(id))
+		{
+			import std.format : format;
+			pragma(msg, format("i18n %s(%s): %s", file, line, id));
+			alias opDispatch = opDispatchImpl!id;
+		}
+	}
+	else
+	{
+		/**
+		  * Get the text for id according to the user's preferred language(s).
+		  * Complexity:
+		  *   $(BIGOH 1). The upper bound is proportional to the number of
+		  * translations provided at compile-time. The number of string
+		  * resources does $(I not) affect runtime.
+		  */
+		template opDispatch(string id)
+			if(identifierExists(id))
+		{
+			alias opDispatch = opDispatchImpl!id;
+		}
 	}
 }
 
