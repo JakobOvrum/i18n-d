@@ -418,8 +418,9 @@ struct Strings()
 
 		static if(sources.length)
 		{
-			static immutable translationTable = translationTables.map!(
-				(ref immutable StringTable table) => table.lookup(id))
+			static immutable string[sources.length + 1] translationTable =
+				translationTables.map!((ref immutable StringTable table) =>
+					table.lookup(id))
 				.array;
 
 			static string opDispatchImpl() @property pure nothrow @safe @nogc
@@ -459,7 +460,8 @@ struct Strings()
 	version(D_Ddoc)
 	{
 		/**
-		 * Get the text for id according to the user's preferred language(s).
+		 * Get the text for $(I id) according to the user's preferred
+		 * language(s).
 		 * Complexity:
 		 *   $(BIGOH 1). The upper bound is proportional to the number of
 		 * translations provided at compile-time. The number of string
