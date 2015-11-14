@@ -197,10 +197,16 @@
  On POSIX systems, this is the POSIX standard of using environment variables,
  including the fallback/priority syntax supported by <i>gettext</i>. See
  <a href="https://www.gnu.org/software/gettext/manual/html_node/Setting-the-POSIX-Locale.html#Setting-the-POSIX-Locale"> gettext's documentation on setting the POSIX locale</a>.
+<br><br>
+
+ <h3>Version Identifiers</h3>
+ The behavior of this module can be configured with version identifiers.
+ <ul> <li><i>i18n_list_references</i>: when this version identifier is set, source
+ code locations of string references will be output during compilation.</li></ul>
 
 </p>
 <dt>See Also</dt><dd><i>gettext</i>'s advice on <a href="https://www.gnu.org/software/gettext/manual/gettext.html#Preparing-Strings">separating strings</a>
- and <a href="https://www.gnu.org/software/gettext/manual/gettext.html#Names">translating names</a>
+ and <a href="https://www.gnu.org/software/gettext/manual/gettext.html#Names">translating proper names</a>
 </dd>
 </dl>
 <hr><div class="row-fluid declaration"><h3>struct <span class="symbol-target" id="Strings">&nbsp;</span><a class="symbol-link" href="#Strings">Strings</a>();
@@ -214,20 +220,15 @@
 <b><i>&Omicron;</i>(</b><span class="inlinecode">log n</span><b><i>)</i></b></dd>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>template <span class="symbol-target" id="opDispatch">&nbsp;</span><a class="symbol-link" href="#opDispatch">opDispatch</a>(string id, string file = __FILE__, uint line = __LINE__) if (identifierExists(id))</h3></div>
-<div class="declaration-content"><br><br>
-<div class="offset1 member-list"><hr><div class="row-fluid declaration"><h3>pure nothrow @nogc @property @safe string <span class="symbol-target" id="opDispatch">&nbsp;</span><a class="symbol-link" href="#opDispatch">opDispatch</a>();
+<hr><div class="row-fluid declaration"><h3>pure nothrow @nogc @property @safe string <span class="symbol-target" id="opDispatch">&nbsp;</span><a class="symbol-link" href="#opDispatch">opDispatch</a>(string id)();
 </h3></div>
-<div class="declaration-content"><dl><p>Get the text for <i>id</i> according to the user's
- preferred language(s).
+<div class="declaration-content"><dl><p>Get the text for id according to the user's preferred language(s).
 </p>
 <dt>Complexity:</dt><dd>
 <b><i>&Omicron;</i>(</b><span class="inlinecode">1</span><b><i>)</i></b>. The upper bound is proportional to the number of
  translations provided at compile-time. The number of string
  resources does <i>not</i> affect runtime.</dd>
 </dl>
-</div>
-</div>
 </div>
 </div>
 </div>
