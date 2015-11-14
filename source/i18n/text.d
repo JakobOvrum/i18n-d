@@ -428,7 +428,9 @@ struct Strings()
 			  * Get the text for $(I id) according to the user's
 			  * preferred language(s).
 			  * Complexity:
-			  *   $(BIGOH 1)
+			  *   $(BIGOH 1). The upper bound is proportional to the number of
+			  * translations provided at compile-time. The number of string
+			  * resources does $(I not) affect runtime.
 			  */
 			string opDispatch() @property pure nothrow @safe @nogc
 			{
