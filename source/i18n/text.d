@@ -443,18 +443,24 @@ struct Strings()
 	}
 	else
 	{
-		/**
-		  * Get the text for id according to the user's preferred language(s).
-		  * Complexity:
-		  *   $(BIGOH 1). The upper bound is proportional to the number of
-		  * translations provided at compile-time. The number of string
-		  * resources does $(I not) affect runtime.
-		  */
 		template opDispatch(string id)
 			if(identifierExists(id))
 		{
 			alias opDispatch = opDispatchImpl!id;
 		}
+	}
+
+	version(D_Ddoc)
+	{
+		/**
+		 * Get the text for id according to the user's preferred language(s).
+		 * Complexity:
+		 *   $(BIGOH 1). The upper bound is proportional to the number of
+		 * translations provided at compile-time. The number of string
+		 * resources does $(I not) affect runtime.
+		 */
+		static string opDispatch(string id)()
+			@property pure nothrow @safe @nogc;
 	}
 }
 
