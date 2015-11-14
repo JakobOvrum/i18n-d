@@ -84,6 +84,12 @@ void main() {
   * $(HTTPS www.gnu.org/software/gettext/manual/html_node/Setting-the-POSIX-Locale.html#Setting-the-POSIX-Locale,
   * gettext's documentation on setting the POSIX locale).
   *
+  * $(SECTION2 Version Identifiers)
+  * The behavior of this module can be configured with version identifiers.
+  * $(UL
+  * $(LI $(I i18n_list_references): when this version identifier is set, source
+  * code locations of string references will be output during compilation.))
+  *
   * See_Also:
   * $(I gettext)'s advice on $(HTTPS www.gnu.org/software/gettext/manual/gettext.html#Preparing-Strings, separating strings)
   * and $(HTTPS www.gnu.org/software/gettext/manual/gettext.html#Names, translating proper names)
