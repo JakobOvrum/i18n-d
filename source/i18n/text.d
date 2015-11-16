@@ -54,7 +54,7 @@ $(LESS)/resources$(GREATER)
   * for the language translation provided within the document. Each translation
   * must be enumerated in the primary catalog with the $(D translation) tag.
   *
-  * The structure of translation catalogs is a subset of the structre of the
+  * The structure of translation catalogs is a subset of the structure of the
   * primary catalog:
 ----
 $(LESS)?xml version="1.0" encoding="utf-8"?$(GREATER)
@@ -230,11 +230,12 @@ struct Locale
 version(Posix)
 {
 	// POSIX and gettext standard
-	Locale[] getLocale() @safe
+	Locale[] getLocale(Locale[] buffer) @safe
 	{
-		import std.algorithm : copy, count, find, map, splitter;
+		import std.algorithm : all, canFind, copy, count, find, map, splitter;
+		import std.ascii : isAlpha;
 		import std.process : environment;
-		import std.range : chain, front, only, popFront;
+		import std.range : chain, empty, front, only, popFront;
 		import std.string : strip;
 
 		auto lang = environment.get("LANG").strip;
@@ -251,8 +252,8 @@ version(Posix)
 		if(localeSearch.empty)
 			return null;
 
-		auto localeSpec = localeSearch.front;
-		if(localeSpec == "C" || localeSpec.front == '/')
+		auto localeSpecs = localeSearch.front;
+		if(localeSpecs == "C" || localeSpecs.front == '/')
 			return null;
 
 		static Locale parseLocale(string spec)
@@ -282,14 +283,25 @@ version(Posix)
 			return locale;
 		}
 
-		auto locales = new Locale[](localeSpec.count(':') + 1);
-		localeSpec.splitter(':').map!parseLocale.copy(locales);
-		return locales;
+		size_t n = 0;
+		foreach(localeSpec; localeSpecs.splitter(':'))
+		{
+			auto locale = parseLocale(localeSpec);
+			if(!locale.language.empty && locale.language.all!isAlpha &&
+				!buffer[0 .. n].canFind!"a.language == b.language"(locale))
+			{
+				buffer[n++] = locale;
+				if(n == buffer.length)
+					break;
+			}
+		}
+
+		return buffer[0 .. n];
 	}
 
 	unittest
 	{
-		import std.process :environment;
+		import std.process : environment;
 
 		foreach(envVar; ["LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"])
 			environment.remove(envVar);
@@ -373,7 +385,8 @@ struct Strings()
 			import std.algorithm : filter, map;
 			import std.range : assumeSorted, empty;
 
-			auto locales = getLocale();
+			Locale[sources.length + 1] localeBuffer;
+			auto locales = getLocale(localeBuffer[]);
 
 			if(!locales.empty)
 			{
