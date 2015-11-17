@@ -462,17 +462,7 @@ struct Strings()
 	else version(i18n_use_utf16)
 		alias I18NString = wstring;
 	else
-	{
-		/**
-		 * Default encoding for string resources, returned by
-		 * $(MREF Strings.opDispatch).
-		 *
-		 * Set version $(I i18n_use_utf32) to use $(D dstring), or
-		 * version $(I i18n_use_utf16) to use $(D wstring); otherwise uses
-		 * $(D string) (UTF-8).
-		 */
 		alias I18NString = string;
-	}
 
 	version(i18n_list_references)
 	{
@@ -507,6 +497,16 @@ struct Strings()
 
 	version(D_Ddoc)
 	{
+		/**
+		 * Default encoding for string resources, returned by
+		 * $(MREF Strings.opDispatch).
+		 *
+		 * Set version $(I i18n_use_utf32) to use $(D dstring), or
+		 * version $(I i18n_use_utf16) to use $(D wstring); otherwise uses
+		 * $(D string) (UTF-8).
+		 */
+		alias I18NString = string;
+
 		/**
 		 * Get the text for $(I id) according to the user's preferred
 		 * language(s).
