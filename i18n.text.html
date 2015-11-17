@@ -222,6 +222,16 @@
 <b><i>&Omicron;</i>(</b><span class="inlinecode">log n</span><b><i>)</i></b></dd>
 </dl>
 </div>
+<hr><div class="row-fluid declaration"><h3>alias <span class="symbol-target" id="I18NString">&nbsp;</span><a class="symbol-link" href="#I18NString">I18NString</a> = string;
+</h3></div>
+<div class="declaration-content"><dl><p>Default encoding for string resources, returned by
+ <a class="symbol-link" href="#Strings.opDispatch"><span class="inlinecode">Strings.opDispatch</span></a>.
+</p>
+<p>Set version <i>i18n_use_utf32</i> to use <span class="inlinecode">dstring</span>, or
+ version <i>i18n_use_utf16</i> to use <span class="inlinecode">wstring</span>; otherwise uses
+ <span class="inlinecode">string</span> (UTF-8).</p>
+</dl>
+</div>
 <hr><div class="row-fluid declaration"><h3>pure nothrow @nogc @property @safe I18NString <span class="symbol-target" id="opDispatch">&nbsp;</span><a class="symbol-link" href="#opDispatch">opDispatch</a>(string id)() if (identifierExists(id));
 <br>pure nothrow @nogc @safe S <span class="symbol-target" id="getEncoded">&nbsp;</span><a class="symbol-link" href="#getEncoded">getEncoded</a>(string id, S)() if (identifierExists(id));
 </h3></div>
