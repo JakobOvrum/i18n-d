@@ -479,9 +479,15 @@ struct Strings()
 		template opDispatch(string id, string file = __FILE__, uint line = __LINE__)
 			if(identifierExists(id))
 		{
+			alias opDispatch = getEncoded!(id, I18NString, file, line);
+		}
+
+		template getEncoded(string id, S, string file = __FILE__, uint line = __LINE__)
+			if(identifierExists(id) && isSomeString!S)
+		{
 			import std.format : format;
 			pragma(msg, format("i18n %s(%s): %s", file, line, id));
-			alias opDispatch = opDispatchImpl!(id, I18NString);
+			alias getEncoded = opDispatchImpl!(id, S);
 		}
 	}
 	else
@@ -491,12 +497,12 @@ struct Strings()
 		{
 			alias opDispatch = opDispatchImpl!(id, I18NString);
 		}
-	}
 
-	template getEncoded(string id, S)
-		if(identifierExists(id) && isSomeString!S)
-	{
-		alias getEncoded = opDispatchImpl!(id, S);
+		template getEncoded(string id, S)
+			if(identifierExists(id) && isSomeString!S)
+		{
+			alias getEncoded = opDispatchImpl!(id, S);
+		}
 	}
 
 	version(D_Ddoc)
