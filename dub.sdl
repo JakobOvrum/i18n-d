@@ -6,3 +6,7 @@ license "BSL-1.0"
 
 importPath "source"
 
+configuration "unittest" {
+    stringImportPaths "test"
+}
+

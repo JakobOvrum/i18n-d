@@ -87,9 +87,11 @@ void main() {
   * $(SECTION2 Version Identifiers)
   * The behavior of this module can be configured with version identifiers.
   * $(UL
-  * $(LI $(I i18n_list_references): when this version identifier is set, source
-  * code locations of string references will be output during compilation.))
-  *
+  * $(LI $(I i18n_list_references): source code locations of string references
+  * will be output during compilation)
+  * $(LI $(I i18n_use_utf32): string resources are encoded in UTF-32 by default)
+  * $(LI $(I i18n_use_utf16): string resources are encoded in UTF-16 by default)
+  * )
   * See_Also:
   * $(I gettext)'s advice on $(HTTPS www.gnu.org/software/gettext/manual/gettext.html#Preparing-Strings, separating strings)
   * and $(HTTPS www.gnu.org/software/gettext/manual/gettext.html#Names, translating proper names)
@@ -306,29 +308,31 @@ version(Posix)
 		foreach(envVar; ["LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"])
 			environment.remove(envVar);
 
+		Locale[3] localeBuffer;
+
 		environment["LANG"] = "en_US.UTF-8";
-		assert(getLocale() == [Locale("en", "US", "UTF-8")]);
+		assert(getLocale(localeBuffer[]) == [Locale("en", "US", "UTF-8")]);
 
 		environment["LANG"] = "en_US";
-		assert(getLocale() == [Locale("en", "US")]);
+		assert(getLocale(localeBuffer[]) == [Locale("en", "US")]);
 
 		environment["LANG"] = "en";
-		assert(getLocale() == [Locale("en")]);
+		assert(getLocale(localeBuffer[]) == [Locale("en")]);
 
 		environment["LC_MESSAGES"] = "de_DE@euro";
-		assert(getLocale() == [Locale("de", "DE", null, "euro")]);
+		assert(getLocale(localeBuffer[]) == [Locale("de", "DE", null, "euro")]);
 
 		environment["LC_ALL"] = "ja.UTF-8";
-		assert(getLocale() == [Locale("ja", null, "UTF-8")]);
+		assert(getLocale(localeBuffer[]) == [Locale("ja", null, "UTF-8")]);
 
 		environment["LANGUAGE"] = "en_US.UTF-8:de_DE@euro:ja.UTF-8";
-		assert(getLocale() == [
+		assert(getLocale(localeBuffer[]) == [
 			Locale("en", "US", "UTF-8"),
 			Locale("de", "DE", null, "euro"),
 			Locale("ja", null, "UTF-8", null)]);
 
 		environment["LANG"] = "C";
-		assert(getLocale() == null);
+		assert(getLocale(localeBuffer[]) == null);
 	}
 }
 
@@ -350,6 +354,7 @@ struct Strings()
 	import std.path : buildPath;
 	import std.range : chain, only, zip;
 	import std.typecons : Tuple;
+	import std.traits : isSomeString;
 
 	private:
 	enum primaryCatalog = parseCatalog(null,
@@ -425,18 +430,19 @@ struct Strings()
 		return primaryTable.lookup(id) != null;
 	}
 
-	private template opDispatchImpl(string id)
+	private template opDispatchImpl(string id, S)
 	{
-		static immutable fallback = primaryTable.lookup(id);
+		import std.conv : to;
+		static immutable fallback = primaryTable.lookup(id).to!S;
 
 		static if(sources.length)
 		{
-			static immutable string[sources.length + 1] translationTable =
+			static immutable S[sources.length + 1] translationTable =
 				translationTables.map!((ref immutable StringTable table) =>
-					table.lookup(id))
+					table.lookup(id).to!S)
 				.array;
 
-			static string opDispatchImpl() @property pure nothrow @safe @nogc
+			static S opDispatchImpl() @property pure nothrow @safe @nogc
 			{
 				foreach(index; translationIndexes)
 				{
@@ -451,6 +457,23 @@ struct Strings()
 			alias opDispatchImpl = fallback;
 	}
 
+	version(i18n_use_utf32)
+		alias I18NString = dstring;
+	else version(i18n_use_utf16)
+		alias I18NString = wstring;
+	else
+	{
+		/**
+		 * Default encoding for string resources, returned by
+		 * $(MREF Strings.opDispatch).
+		 *
+		 * Set version $(I i18n_use_utf32) to use $(D dstring), or
+		 * version $(I i18n_use_utf16) to use $(D wstring); otherwise uses
+		 * $(D string) (UTF-8).
+		 */
+		alias I18NString = string;
+	}
+
 	version(i18n_list_references)
 	{
 		template opDispatch(string id, string file = __FILE__, uint line = __LINE__)
@@ -458,7 +481,7 @@ struct Strings()
 		{
 			import std.format : format;
 			pragma(msg, format("i18n %s(%s): %s", file, line, id));
-			alias opDispatch = opDispatchImpl!id;
+			alias opDispatch = opDispatchImpl!(id, I18NString);
 		}
 	}
 	else
@@ -466,8 +489,14 @@ struct Strings()
 		template opDispatch(string id)
 			if(identifierExists(id))
 		{
-			alias opDispatch = opDispatchImpl!id;
+			alias opDispatch = opDispatchImpl!(id, I18NString);
 		}
+	}
+
+	template getEncoded(string id, S)
+		if(identifierExists(id) && isSomeString!S)
+	{
+		alias getEncoded = opDispatchImpl!(id, S);
 	}
 
 	version(D_Ddoc)
@@ -475,13 +504,32 @@ struct Strings()
 		/**
 		 * Get the text for $(I id) according to the user's preferred
 		 * language(s).
+		 * Params:
+		 *   id = identifier of string resource (the $(D name) attribute)
+		 *   S = encoding for returned string, either $(D string),
+		 * $(D wstring) or $(D dstring)
 		 * Complexity:
 		 *   $(BIGOH 1). The upper bound is proportional to the number of
 		 * translations provided at compile-time. The number of string
 		 * resources does $(I not) affect runtime.
+		 * Example:
+		 * ----
+		 * void main()
+		 * {
+		 *     import std.stdio, i18n.text;
+		 *     writeln(strings.hello_world); // Default encoding
+		 *     writeln(strings.getEncoded!("hello_world", wstring)); // UTF-16
+		 * }
+		 * ----
 		 */
-		static string opDispatch(string id)()
-			@property pure nothrow @safe @nogc;
+		@property pure nothrow @safe @nogc
+		static I18NString opDispatch(string id)()
+			if(identifierExists(id));
+
+		/// Ditto
+		pure nothrow @safe @nogc
+		static S getEncoded(string id, S)()
+			if(identifierExists(id));
 	}
 }
 
@@ -492,5 +540,23 @@ struct Strings()
 Strings!() strings()() @property pure nothrow @safe @nogc
 {
 	return Strings!()();
+}
+
+// Requires -Jtest
+// Run with: LANGUAGE="ja_JP.UTF-8:de_DE.UTF-8"
+unittest
+{
+	assert(strings.greeting == "今日は"); // ja
+	assert(strings.yes == "ja"); // de
+	assert(strings.no == "no"); // fallback to primary catalog (en)
+
+	static assert(!__traits(compiles, strings.nonexistant));
+
+	assert(strings.getEncoded!("greeting", dstring) == "今日は"d);
+	assert(strings.getEncoded!("yes", wstring) == "ja"w);
+	assert(strings.getEncoded!("no", string) == "no"c);
+
+	static assert(!__traits(compiles,
+		strings.getEncoded!("nonexistant", dstring)));
 }
 

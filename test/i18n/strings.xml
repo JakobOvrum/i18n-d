@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources language="en">
+    <translation language="de"/>
+    <translation language="ja"/>
+    <string name="greeting">hello</string>
+    <string name="yes">yes</string>
+    <string name="no">no</string>
+</resources>
