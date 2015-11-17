@@ -170,7 +170,7 @@
  must be enumerated in the primary catalog with the <span class="inlinecode">translation</span> tag.
 <br><br>
 
- The structure of translation catalogs is a subset of the structre of the
+ The structure of translation catalogs is a subset of the structure of the
  primary catalog:
 <pre class="d_code">&lt;?xml <span class="d_keyword">version</span>=<span class="d_string">"1.0"</span> encoding=<span class="d_string">"utf-8"</span>?&gt;
 &lt;resources&gt;
@@ -201,9 +201,11 @@
 
  <h3>Version Identifiers</h3>
  The behavior of this module can be configured with version identifiers.
- <ul> <li><i>i18n_list_references</i>: when this version identifier is set, source
- code locations of string references will be output during compilation.</li></ul>
-
+ <ul> <li><i>i18n_list_references</i>: source code locations of string references
+ will be output during compilation</li>
+ <li><i>i18n_use_utf32</i>: string resources are encoded in UTF-32 by default</li>
+ <li><i>i18n_use_utf16</i>: string resources are encoded in UTF-16 by default</li>
+ </ul>
 </p>
 <dt>See Also</dt><dd><i>gettext</i>'s advice on <a href="https://www.gnu.org/software/gettext/manual/gettext.html#Preparing-Strings">separating strings</a>
  and <a href="https://www.gnu.org/software/gettext/manual/gettext.html#Names">translating proper names</a>
@@ -220,14 +222,32 @@
 <b><i>&Omicron;</i>(</b><span class="inlinecode">log n</span><b><i>)</i></b></dd>
 </dl>
 </div>
-<hr><div class="row-fluid declaration"><h3>pure nothrow @nogc @property @safe string <span class="symbol-target" id="opDispatch">&nbsp;</span><a class="symbol-link" href="#opDispatch">opDispatch</a>(string id)();
+<hr><div class="row-fluid declaration"><h3>pure nothrow @nogc @property @safe I18NString <span class="symbol-target" id="opDispatch">&nbsp;</span><a class="symbol-link" href="#opDispatch">opDispatch</a>(string id)() if (identifierExists(id));
+<br>pure nothrow @nogc @safe S <span class="symbol-target" id="getEncoded">&nbsp;</span><a class="symbol-link" href="#getEncoded">getEncoded</a>(string id, S)() if (identifierExists(id));
 </h3></div>
-<div class="declaration-content"><dl><p>Get the text for id according to the user's preferred language(s).
+<div class="declaration-content"><dl><p>Get the text for <i>id</i> according to the user's preferred
+ language(s).
 </p>
+<dt>Parameters</dt><dd><table class="table table-condensed table-bordered"><tr><td>id</td>
+<td>identifier of string resource (the <span class="inlinecode">name</span> attribute)</td></tr>
+<tr><td>S</td>
+<td>encoding for returned string, either <span class="inlinecode">string</span>,
+ <span class="inlinecode">wstring</span> or <span class="inlinecode">dstring</span></td></tr>
+</table></dd>
 <dt>Complexity:</dt><dd>
 <b><i>&Omicron;</i>(</b><span class="inlinecode">1</span><b><i>)</i></b>. The upper bound is proportional to the number of
  translations provided at compile-time. The number of string
- resources does <i>not</i> affect runtime.</dd>
+ resources does <i>not</i> affect runtime.
+</dd>
+<dt>Example:</dt><dd>
+<pre class="d_code"><span class="d_keyword">void</span> main()
+{
+    <span class="d_keyword">import</span> std.stdio, i18n.text;
+    writeln(strings.hello_world); <span class="d_comment">// Default encoding
+</span>    writeln(strings.<u>getEncoded</u>!(<span class="d_string">"hello_world"</span>, wstring)); <span class="d_comment">// UTF-16
+</span>}
+</pre>
+</dd>
 </dl>
 </div>
 </div>
