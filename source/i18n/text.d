@@ -330,6 +330,14 @@ version(Posix)
 		assert(selectedLocales.empty);
 
 		environment["LANGUAGE"] = "en_US:en_GB:en_US:de_DE:en_GB";
+		assert(selectedLocales.empty); // $LANG = "C" overrides $LANGUAGE
+		environment.remove("LANG");
+		assert(selectedLocales.equal([
+			Locale("en", "US"),
+			Locale("en", "GB"),
+			Locale("en", "US"),
+			Locale("de", "DE"),
+			Locale("en", "GB")]));
 	}
 }
 
