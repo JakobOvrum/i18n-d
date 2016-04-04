@@ -232,32 +232,37 @@ struct Locale
 version(Posix)
 {
 	// POSIX and gettext standard
-	Locale[] getLocale(Locale[] buffer) @safe
+	auto selectedLocales() /+ nothrow +/ @safe
 	{
-		import std.algorithm : all, canFind, copy, count, find, map, splitter;
+		import std.algorithm : all, canFind, filter, find, map, splitter;
 		import std.ascii : isAlpha;
+		import std.functional : not;
 		import std.process : environment;
-		import std.range : chain, empty, front, only, popFront;
+		import std.range : chain, empty, front, only;
 		import std.string : strip;
 
+		string localeSpecs = null;
+
+		// if $LANG == "C", ignore other envvars
 		auto lang = environment.get("LANG").strip;
-		if(lang == "C")
-			return null;
+		if(lang != "C")
+		{
+			// These are sorted by priority
+			static immutable envVars = ["LANGUAGE", "LC_ALL", "LC_MESSAGES"];
+			auto localeSearch = envVars.map!(environment.get)
+				.map!strip
+				.chain(only(lang)) // $LANG is otherwise considered last
+				.find!(var => var.length);
 
-		// These are sorted by priority
-		static immutable envVars = ["LANGUAGE", "LC_ALL", "LC_MESSAGES"];
-		auto localeSearch = envVars.map!(environment.get)
-			.map!strip
-			.chain(only(lang))
-			.find!(var => var.length);
+			if (!localeSearch.empty)
+			{
+				if(localeSearch.front != "C" &&
+				  localeSearch.front.front != '/')
+					localeSpecs = localeSearch.front;
+			}
+		}
 
-		if(localeSearch.empty)
-			return null;
-
-		auto localeSpecs = localeSearch.front;
-		if(localeSpecs == "C" || localeSpecs.front == '/')
-			return null;
-
+		// spec = ll_CC.ENCODING@variant
 		static Locale parseLocale(string spec)
 		{
 			import std.string : lastIndexOf;
@@ -285,54 +290,46 @@ version(Posix)
 			return locale;
 		}
 
-		size_t n = 0;
-		foreach(localeSpec; localeSpecs.splitter(':'))
-		{
-			auto locale = parseLocale(localeSpec);
-			if(!locale.language.empty && locale.language.all!isAlpha &&
-				!buffer[0 .. n].canFind!"a.language == b.language"(locale))
-			{
-				buffer[n++] = locale;
-				if(n == buffer.length)
-					break;
-			}
-		}
-
-		return buffer[0 .. n];
+		return localeSpecs
+			.splitter(':')
+			.map!parseLocale
+			.filter!(locale =>
+				!locale.language.empty && locale.language.all!isAlpha);
 	}
 
-	unittest
+	@safe unittest
 	{
+		import std.algorithm : equal;
 		import std.process : environment;
 
 		foreach(envVar; ["LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"])
 			environment.remove(envVar);
 
-		Locale[3] localeBuffer;
-
 		environment["LANG"] = "en_US.UTF-8";
-		assert(getLocale(localeBuffer[]) == [Locale("en", "US", "UTF-8")]);
+		assert(selectedLocales.equal([Locale("en", "US", "UTF-8")]));
 
 		environment["LANG"] = "en_US";
-		assert(getLocale(localeBuffer[]) == [Locale("en", "US")]);
+		assert(selectedLocales.equal([Locale("en", "US")]));
 
 		environment["LANG"] = "en";
-		assert(getLocale(localeBuffer[]) == [Locale("en")]);
+		assert(selectedLocales.equal([Locale("en")]));
 
 		environment["LC_MESSAGES"] = "de_DE@euro";
-		assert(getLocale(localeBuffer[]) == [Locale("de", "DE", null, "euro")]);
+		assert(selectedLocales.equal([Locale("de", "DE", null, "euro")]));
 
 		environment["LC_ALL"] = "ja.UTF-8";
-		assert(getLocale(localeBuffer[]) == [Locale("ja", null, "UTF-8")]);
+		assert(selectedLocales.equal([Locale("ja", null, "UTF-8")]));
 
 		environment["LANGUAGE"] = "en_US.UTF-8:de_DE@euro:ja.UTF-8";
-		assert(getLocale(localeBuffer[]) == [
+		assert(selectedLocales.equal([
 			Locale("en", "US", "UTF-8"),
 			Locale("de", "DE", null, "euro"),
-			Locale("ja", null, "UTF-8", null)]);
+			Locale("ja", null, "UTF-8", null)]));
 
 		environment["LANG"] = "C";
-		assert(getLocale(localeBuffer[]) == null);
+		assert(selectedLocales.empty);
+
+		environment["LANGUAGE"] = "en_US:en_GB:en_US:de_DE:en_GB";
 	}
 }
 
@@ -385,34 +382,24 @@ struct Strings()
 			return translationIndexesBuffer[0 .. numChosenLocales];
 		}
 
-		shared static this()
+		shared static this() @safe
 		{
-			import std.algorithm : filter, map;
+			import std.algorithm : canFind, filter, map;
 			import std.range : assumeSorted, empty;
 
-			Locale[sources.length + 1] localeBuffer;
-			auto locales = getLocale(localeBuffer[]);
-
-			if(!locales.empty)
+			size_t i = 0;
+			foreach(translationIndex; selectedLocales.map!(locale =>
+					translationTables.assumeSorted!("a.language < b.language")
+					.equalRange(StringTable(locale.language)))
+				.filter!(match => !match.empty) // No translation for selected language
+				.map!(match => match.release.ptr - translationTables.ptr))
 			{
-				auto sortedTranslationTables = translationTables
-					.assumeSorted!("a.language < b.language");
-
-				size_t i = 0;
-				foreach(translationIndex; locales.map!(locale =>
-						sortedTranslationTables
-							.equalRange(StringTable(locale.language)))
-					.filter!(searchResult => !searchResult.empty)
-					.map!(searchResult =>
-						searchResult.release.ptr - translationTables.ptr))
-				{
+				// If this is the language of a higher priority locale,
+				// ignore this entry
+				if(!translationIndexesBuffer[0 .. i].canFind(translationIndex))
 					translationIndexesBuffer[i++] = translationIndex;
-				}
-				numChosenLocales = i;
-
 			}
-			else
-				numChosenLocales = 0;
+			numChosenLocales = i;
 		}
 	}
 
@@ -437,7 +424,7 @@ struct Strings()
 
 		static if(sources.length)
 		{
-			static immutable S[sources.length + 1] translationTable =
+			static immutable S[translationTables.length] translationTable =
 				translationTables.map!((ref immutable StringTable table) =>
 					table.lookup(id).to!S)
 				.array;
@@ -548,10 +535,23 @@ Strings!() strings()() @property pure nothrow @safe @nogc
 	return Strings!()();
 }
 
-// Requires -Jtest
-// Run with: LANGUAGE="ja_JP.UTF-8:de_DE.UTF-8"
-unittest
+version(test_empty) unittest
 {
+	static assert(!__traits(compiles, strings.nonexistant));
+}
+
+// The catalogs in test/ja-de provide `ja` and `de` translations, with `en` primary.
+// The following unit test expects priority ja -> de.
+// Therefore, run with: LANGUAGE="[x:]ja_JP.UTF-8:[y:]de_DE.UTF-8[z:]"
+// Where x, y and z can contain anything but an `en` spec
+version(test_ja_de) unittest
+{
+	import std.algorithm : equal, map;
+	import std.stdio;
+
+	assert(Strings!().translationIndexes
+			.map!(i => Strings!().translationTables[i].language).equal(["ja", "de"]));
+
 	assert(strings.greeting == "今日は"); // ja
 	assert(strings.yes == "ja"); // de
 	assert(strings.no == "no"); // fallback to primary catalog (en)
