@@ -6,7 +6,12 @@ license "BSL-1.0"
 
 importPath "source"
 
-configuration "unittest" {
-    stringImportPaths "test"
+configuration "test-empty" {
+    stringImportPaths "test/empty"
+    version "test_empty"
 }
 
+configuration "test-ja-de" {
+    stringImportPaths "test/ja-de"
+    version "test_ja_de"
+}
